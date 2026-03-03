@@ -130,7 +130,7 @@ composer.addPass(new UnrealBloomPass(
 const controls=new OrbitControls(camera,renderer.domElement);
 controls.enablePan=false;
 
-scene.add(new THREE.AmbientLight(0xffffff,0.1));
+scene.add(new THREE.AmbientLight(0xffffff,0.05));
 
 const sunLight=new THREE.DirectionalLight(0xffffff,3);
 sunLight.position.set(10,0,5);
@@ -141,37 +141,81 @@ scene.add(sunLight);
 const loader=new THREE.TextureLoader();
 
 const dayTexture=loader.load("https://threejs.org/examples/textures/land_ocean_ice_cloud_2048.jpg");
-const nightTexture=loader.load("https://threejs.org/examples/textures/planets/earth_at_night_2048.jpg");
+const nightTexture=loader.load("https://threejs.org/examples/textures/planets/earth_night_4096.jpg");
 const normalMap=loader.load("https://threejs.org/examples/textures/planets/earth_normal_2048.jpg");
 
-const earthMaterial=new THREE.MeshStandardMaterial({
-    map:dayTexture,
-    emissiveMap:nightTexture,
-    emissive:new THREE.Color(0xffffff),
-    emissiveIntensity:0.6,
-    normalMap:normalMap,
-    normalScale:new THREE.Vector2(0.8,0.8),
-    roughness:1,
-    metalness:0,
-    transparent:true,
-    opacity:1
+const earthMaterial = new THREE.MeshStandardMaterial({
+    map: dayTexture,
+    lightMap: nightTexture,
+    lightMapIntensity: 1.5,
+    normalMap: normalMap,
+    normalScale: new THREE.Vector2(0.8, 0.8),
+    roughness: 0.25,
+    metalness: 0,
+    transparent: true,
+    opacity: 1
 });
 
-const earth=new THREE.Mesh(
-    new THREE.SphereGeometry(1,128,128),
-    earthMaterial
+const earthGeometry = new THREE.SphereGeometry(1,128,128);
+earthGeometry.setAttribute(
+    'uv2',
+    new THREE.BufferAttribute(earthGeometry.attributes.uv.array, 2)
 );
+
+const earth = new THREE.Mesh(earthGeometry, earthMaterial);
 scene.add(earth);
 
-const atmosphere=new THREE.Mesh(
-    new THREE.SphereGeometry(1.02,64,64),
-    new THREE.MeshBasicMaterial({
-        color:0x4da6ff,
-        transparent:true,
-        opacity:0.15,
-        side:THREE.BackSide
-    })
-);
+/* ---------------- ATMOSPHERE ---------------- */
+
+const atmosphereGeometry = new THREE.SphereGeometry(1.015, 128, 128);
+
+const atmosphereMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+        sunDirection: { value: new THREE.Vector3(1,0,0) },
+        glowColor: { value: new THREE.Color(0x4da6ff) }
+    },
+    vertexShader: `
+        varying vec3 vNormal;
+        varying vec3 vWorldPosition;
+
+        void main() {
+            vNormal = normalize(normalMatrix * normal);
+            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+            vWorldPosition = worldPosition.xyz;
+            gl_Position = projectionMatrix * viewMatrix * worldPosition;
+        }
+    `,
+    fragmentShader: `
+        uniform vec3 sunDirection;
+        uniform vec3 glowColor;
+
+        varying vec3 vNormal;
+        varying vec3 vWorldPosition;
+
+        void main() {
+
+            // View direction
+            vec3 viewDir = normalize(cameraPosition - vWorldPosition);
+
+            // Fresnel effect (strong at limb)
+            float fresnel = pow(1.0 - dot(viewDir, vNormal), 4.0);
+
+            // Sun scattering (day side brighter)
+            float sunFactor = max(dot(vNormal, sunDirection), 0.0);
+
+            // Combine effects
+            float intensity = fresnel * (0.4 + sunFactor * 0.6);
+
+            gl_FragColor = vec4(glowColor, intensity * 0.6);
+        }
+    `,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+    transparent: true,
+    depthWrite: false
+});
+
+const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
 earth.add(atmosphere);
 
 /* ---------------- STARFIELD ---------------- */
@@ -311,7 +355,18 @@ function updateScene(){
     earth.rotation.y=-gmst(date);
 
     const earthPos=heliocentricPosition("earth",JD);
-	sunLight.position.copy(earthPos.clone().negate().normalize().multiplyScalar(20));
+	
+	const lightDir = new THREE.Vector3();
+	sunLight.getWorldDirection(lightDir);
+
+	// This gives direction light rays travel (toward surface)
+	// For Lambert-style dot(normal, lightDir)
+	// we want surface → sun, so invert it:
+
+	lightDir.negate();
+
+	atmosphere.material.uniforms.sunDirection.value.copy(lightDir);
+
     let marsPos=heliocentricPosition("mars",JD);
 
     for(let i=0;i<2;i++){
