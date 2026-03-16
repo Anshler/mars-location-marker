@@ -13,7 +13,7 @@ An interactive 3D globe that shows the direction of Mars from any location on Ea
 
 ## Usage
 
-Enter a location (city name or lat/lon) and optionally adjust the date and time. A line is drawn from your chosen point on Earth's surface toward Mars, with a marker where it exits the globe.
+Enter a location and optionally adjust the date and time. A line is drawn from your chosen point on Earth's surface toward Mars, with a marker where it exits the globe.
 
 ## Running Locally
 
