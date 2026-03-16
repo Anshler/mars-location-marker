@@ -46,7 +46,7 @@ const normalMap     = loader.load("https://threejs.org/examples/textures/planets
 export const earthMaterial = new THREE.MeshStandardMaterial({
     map: dayTexture,
     lightMap: nightTexture,
-    lightMapIntensity: 1.5,
+    lightMapIntensity: 1,
     normalMap: normalMap,
     normalScale: new THREE.Vector2(0.8, 0.8),
     roughness: 0.3,
