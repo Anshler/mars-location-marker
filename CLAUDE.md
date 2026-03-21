@@ -47,4 +47,4 @@ index.html
 - Nominatim (OpenStreetMap) for location geocoding
 - Three.js hosted textures for earth day/night/normal maps
 
-**Coordinate system note:** `latLonToVector3` in [js/astronomy.js](js/astronomy.js) maps lat/lon to a unit sphere where Three.js +Y = north pole. The equatorial observer position uses GMST + longitude as the hour angle. The ecliptic tilt (`OBLIQUITY`) is applied as a rotation around the X-axis to convert from heliocentric ecliptic to the scene's equatorial frame.
+**Coordinate system note:** `latLonToVector3` in [js/astronomy.js](js/astronomy.js) maps lat/lon to a unit sphere where Three.js +Y = north pole. The equatorial observer position uses GMST + longitude as the hour angle. Two-step frame conversion is applied in `ui.js`: (1) ecliptic → standard equatorial via `applyAxisAngle(X, +OBLIQUITY)`; (2) equatorial (Z=north) → scene (Y=north) via the mapping `(x, y, z) → (x, z, -y)`. RA/Dec are computed in the equatorial frame; the rendered line and cone use the scene-frame vector.
