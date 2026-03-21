@@ -65,6 +65,7 @@ export function updateScene() {
 
     const earthPos = heliocentricPosition("earth", JD);
 
+    // Ecliptic → equatorial (rotate around X by obliquity), then equatorial → scene (Y=north)
     const sunEq = earthPos.clone().negate()
         .applyAxisAngle(new THREE.Vector3(1, 0, 0), OBLIQUITY);
     const sunDir = new THREE.Vector3(sunEq.x, sunEq.z, -sunEq.y).normalize();
@@ -82,6 +83,7 @@ export function updateScene() {
         marsPos = heliocentricPosition("mars", JD - lt);
     }
 
+    // Geocentric Mars in ecliptic → equatorial (rotate around X by obliquity)
     let geo = marsPos.clone().sub(earthPos);
     geo.applyAxisAngle(new THREE.Vector3(1, 0, 0), OBLIQUITY);
 
@@ -96,7 +98,9 @@ export function updateScene() {
         Math.sin(latRad)
     ).multiplyScalar(EARTH_RADIUS_AU);
 
+    // topo: topocentric direction in equatorial coords (Z=north) — used for RA/Dec
     const topo = geo.clone().sub(observerEquatorial).normalize();
+    // topoScene: equatorial (Z=north) → scene frame (Y=north) for rendering
     const topoScene = new THREE.Vector3(topo.x, topo.z, -topo.y);
 
     let ra = Math.atan2(topo.y, topo.x);
