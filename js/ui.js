@@ -31,15 +31,14 @@ function createLabel(text) {
 
 /* ---------------- TIME ---------------- */
 
-export function getUTCDate() {
-    if (!dateTimeInput.value) return null;
-    const [datePart, timePart = '00:00:00'] = dateTimeInput.value.split('T');
+export function parseDateTimeInTZ(value, tz) {
+    if (!value) return null;
+    const [datePart, timePart = '00:00:00'] = value.split('T');
     const [year, month, day] = datePart.split('-').map(Number);
     const [hour = 0, minute = 0, second = 0] = timePart.split(':').map(Number);
     // Parse as UTC to avoid any browser-timezone influence
     const naive = Date.UTC(year, month - 1, day, hour, minute, second);
 
-    const tz = timezoneSelect.value;
     // Find what the selected timezone displays at UTC=naive
     const parts = new Intl.DateTimeFormat('en-CA', {
         timeZone: tz,
@@ -52,6 +51,10 @@ export function getUTCDate() {
                              Number(p.hour), Number(p.minute), Number(p.second));
     // naive - tzAsUTC = the tz offset at that moment; subtract it to get true UTC
     return new Date(naive + (naive - tzAsUTC));
+}
+
+export function getUTCDate() {
+    return parseDateTimeInTZ(dateTimeInput.value, timezoneSelect.value);
 }
 
 /* ---------------- UPDATE ---------------- */

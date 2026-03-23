@@ -1,4 +1,4 @@
-import { updateScene, getUTCDate } from './ui.js';
+import { updateScene, getUTCDate, parseDateTimeInTZ } from './ui.js';
 import { state } from './state.js';
 
 /* ---------------- DOM REFS ---------------- */
@@ -35,8 +35,9 @@ function getAnimDuration() {
 }
 
 function getSwappedRange() {
-    let from = new Date(tlFromInput.value);
-    let to   = new Date(tlToInput.value);
+    const tz = timezoneSelect.value;
+    let from = parseDateTimeInTZ(tlFromInput.value, tz);
+    let to   = parseDateTimeInTZ(tlToInput.value, tz);
     if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return null;
     if (from > to) { [from, to] = [to, from]; }
     return { from, to };
