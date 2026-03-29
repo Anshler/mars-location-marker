@@ -3,6 +3,9 @@
 ![Vanilla JS](https://img.shields.io/badge/built%20with-Vanilla%20JS-f7df1e)
 ![No build step](https://img.shields.io/badge/build-none-brightgreen)
 ![Three.js](https://img.shields.io/badge/Three.js-0.160.0-black?logo=threedotjs)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3.3-7952b3?logo=bootstrap&logoColor=white)
+![Nominatim](https://img.shields.io/badge/Geocoding-Nominatim-7EBC6F?logo=openstreetmap&logoColor=white)
+
 
 An interactive 3D globe that shows the direction of Mars from any location on Earth, at any point in time.
 
